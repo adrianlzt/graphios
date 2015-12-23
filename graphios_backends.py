@@ -677,7 +677,7 @@ class influxdb09(influxdb):
 
         series_chunks = self.chunks(perfdata, self.influxdb_max_metrics)
         for chunk in series_chunks:
-            series = {"database": self.influxdb_db, "points": chunk}
+            series = {"database": project, "points": chunk}
             for s in self.influxdb_servers:
                 if not self._send(s, series):
                     ret = 0
