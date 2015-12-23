@@ -660,7 +660,13 @@ class influxdb09(influxdb):
                 except ValueError:
                     value = 0
 
-            tags = {"check": m.LABEL, "host": m.HOSTNAME}
+            # Add project as tag
+            try:
+                project = m.PROJECT
+            except AttributeError:
+                project = "NA"
+
+            tags = {"check": m.LABEL, "host": m.HOSTNAME, "project": project}
             tags.update(self.influxdb_extra_tags)
 
             perfdata.append({
