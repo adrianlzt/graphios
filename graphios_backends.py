@@ -642,7 +642,7 @@ class influxdb09(influxdb):
     def send(self, metrics):
         """ Connect to influxdb and send metrics """
         ret = 0
-        perfdata = []
+        perfdata = {}
         for m in metrics:
             ret += 1
 
@@ -669,18 +669,20 @@ class influxdb09(influxdb):
             tags = {"check": m.LABEL, "host": m.HOSTNAME, "project": project}
             tags.update(self.influxdb_extra_tags)
 
-            perfdata.append({
-                            "timestamp": int(m.TIMET),
-                            "measurement": path,
-                            "tags": tags,
-                            "fields": {"value": value}})
+            # perfdata has each project's metrics in a different array
+            perfdata.setdefault(project, []).append({
+                                                     "timestamp": int(m.TIMET),
+                                                     "measurement": path,
+                                                     "tags": tags,
+                                                     "fields": {"value": value}})
 
-        series_chunks = self.chunks(perfdata, self.influxdb_max_metrics)
-        for chunk in series_chunks:
-            series = {"database": project, "points": chunk}
-            for s in self.influxdb_servers:
-                if not self._send(s, series):
-                    ret = 0
+        for project in perfdata:
+            series_chunks = self.chunks(perfdata[project], self.influxdb_max_metrics)
+            for chunk in series_chunks:
+                series = {"database": project, "points": chunk}
+                for s in self.influxdb_servers:
+                    if not self._send(s, series):
+                        ret = 0
 
         return ret
 
