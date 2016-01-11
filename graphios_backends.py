@@ -653,8 +653,10 @@ class influxdb09(influxdb):
 
             if (m.SERVICEDESC == ''):
                 path = m.HOSTCHECKCOMMAND
+                status = m.HOSTSTATE
             else:
                 path = m.SERVICEDESC
+                status = m.SERVICESTATE
 
             # Ensure a float gets passed
             # A measurement can not have integer and float values
@@ -669,7 +671,7 @@ class influxdb09(influxdb):
             except AttributeError:
                 project = "NA"
 
-            tags = {"check": m.LABEL, "host": m.HOSTNAME, "project": project}
+            tags = {"check": m.LABEL, "host": m.HOSTNAME, "project": project, "status": status}
             tags.update(self.influxdb_extra_tags)
 
             # perfdata has each project's metrics in a different array
