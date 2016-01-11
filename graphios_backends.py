@@ -11,6 +11,8 @@ import urllib2
 import json
 import os
 import ast
+import requests
+from influxdb import InfluxDBClusterClient
 # ###########################################################
 # #### Librato Backend
 
@@ -629,6 +631,9 @@ class influxdb09(influxdb):
         else:
             self.influxdb_extra_tags = {}
 
+        hosts = map(lambda x: (x.split(':')[0],x.split(':')[1]), self.influxdb_servers)
+        self.client = InfluxDBClusterClient(hosts, self.influxdb_user, self.influxdb_password, timeout = self.timeout)
+
     def build_url(self, server):
         """ Returns a url to specified InfluxDB-server """
         test_port = server.split(':')
@@ -642,7 +647,7 @@ class influxdb09(influxdb):
     def send(self, metrics):
         """ Connect to influxdb and send metrics """
         ret = 0
-        perfdata = []
+        perfdata = {}
         for m in metrics:
             ret += 1
 
@@ -651,30 +656,45 @@ class influxdb09(influxdb):
             else:
                 path = m.SERVICEDESC
 
-            # Ensure a int/float gets passed
+            # Ensure a float gets passed
+            # A measurement can not have integer and float values
             try:
-                value = int(m.VALUE)
+                value = float(m.VALUE)
             except ValueError:
-                try:
-                    value = float(m.VALUE)
-                except ValueError:
-                    value = 0
+                value = 0
 
-            tags = {"check": m.LABEL, "host": m.HOSTNAME}
+            # Add project as tag
+            try:
+                project = m.PROJECT
+            except AttributeError:
+                project = "NA"
+
+            tags = {"check": m.LABEL, "host": m.HOSTNAME, "project": project}
             tags.update(self.influxdb_extra_tags)
 
-            perfdata.append({
-                            "timestamp": int(m.TIMET),
-                            "measurement": path,
-                            "tags": tags,
-                            "fields": {"value": value}})
+            # perfdata has each project's metrics in a different array
+            perfdata.setdefault(project, []).append({
+                                                     "time": int(m.TIMET),
+                                                     "measurement": path,
+                                                     "tags": tags,
+                                                     "fields": {"value": value}})
 
-        series_chunks = self.chunks(perfdata, self.influxdb_max_metrics)
-        for chunk in series_chunks:
-            series = {"database": self.influxdb_db, "points": chunk}
-            for s in self.influxdb_servers:
-                if not self._send(s, series):
-                    ret = 0
+        for project in perfdata:
+            try:
+                self.client.write_points(perfdata[project], database=project,
+                                         batch_size = self.influxdb_max_metrics)
+
+            except requests.exceptions.Timeout as error:
+                self.log.critical("Timeout connecting to InfluxDB: %s", error)
+                ret = 0
+            except requests.exceptions.ConnectionError as error:
+                self.log.critical("Error connecting to InfluxDB: %s", error)
+                ret = 0
+            except Exception as error:
+                self.log.critical("Error writing points to InfluxDB: %s", error)
+                # If send fails, set sended metrics as 0.
+                # Will print a error message: "...insufficent metrics sent from..."
+                ret = 0
 
         return ret
 
