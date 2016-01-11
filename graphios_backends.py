@@ -656,14 +656,12 @@ class influxdb09(influxdb):
             else:
                 path = m.SERVICEDESC
 
-            # Ensure a int/float gets passed
+            # Ensure a float gets passed
+            # A measurement can not have integer and float values
             try:
-                value = int(m.VALUE)
+                value = float(m.VALUE)
             except ValueError:
-                try:
-                    value = float(m.VALUE)
-                except ValueError:
-                    value = 0
+                value = 0
 
             # Add project as tag
             try:
