@@ -672,6 +672,28 @@ class influxdb09(influxdb):
                 project = "NA"
 
             tags = {"check": m.LABEL, "host": m.HOSTNAME, "project": project, "status": status}
+
+            # Add warning and critical threshold if exists
+            try:
+                tags.update({"warning": float(m.WARN)})
+            except ValueError:
+                pass
+
+            try:
+                tags.update({"critical": float(m.CRIT)})
+            except ValueError:
+                pass
+
+            try:
+                tags.update({"min": float(m.MIN)})
+            except ValueError:
+                pass
+
+            try:
+                tags.update({"max": float(m.MAX)})
+            except ValueError:
+                pass
+
             tags.update(self.influxdb_extra_tags)
 
             # perfdata has each project's metrics in a different array
