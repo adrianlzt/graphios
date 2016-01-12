@@ -113,6 +113,10 @@ class GraphiosMetric(object):
         self.LABEL = ''                 # The name in the perfdata from nagios
         self.VALUE = ''                 # The measured value of that metric
         self.UOM = ''                   # The unit of measure for the metric
+        self.WARN = ''                  # Warning threshold
+        self.CRIT = ''                  # Critical threshold
+        self.MIN = ''                   # Min value possible
+        self.MAX = ''                   # Max value possible
         self.DATATYPE = ''              # HOSTPERFDATA|SERVICEPERFDATA
         self.METRICTYPE = 'gauge'       # gauge|counter|timer etc..
         self.TIMET = ''                 # Epoc time the measurement was taken
@@ -366,10 +370,21 @@ def process_log(file_name):
                 try:
                     nobj = copy.copy(mobj)
                     (nobj.LABEL, d) = metric.split('=')
-                    v = d.split(';')[0]
+                    values = d.split(';')
+                    v = values[0]
                     u = v
                     nobj.VALUE = re.sub("[a-zA-Z%]", "", v)
                     nobj.UOM = re.sub("[^a-zA-Z]+", "", u)
+
+                    # Extract other values from perfdata
+                    try:
+                        nobj.WARN = values[1]
+                        nobj.CRIT = values[2]
+                        nobj.MIN = values[3]
+                        nobj.MAX = values[4]
+                    except IndexError:
+                        pass
+
                     processed_objects.append(nobj)
                 except:
                     log.critical("failed to parse label: '%s' part of perf"
