@@ -684,6 +684,7 @@ class influxdb09(influxdb):
         for project in perfdata:
             try:
                 self.client.write_points(perfdata[project], database=project,
+                                         time_precision='s',
                                          batch_size = self.influxdb_max_metrics)
 
             except requests.exceptions.Timeout as error:
