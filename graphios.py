@@ -416,7 +416,7 @@ def get_mobj(nag_array):
             value = re.sub("\s", "", value)
             setattr(mobj, var_name, value)
     mobj.validate()
-    if mobj.VALID is True:
+    if mobj.VALID:
         return mobj
     return False
 
