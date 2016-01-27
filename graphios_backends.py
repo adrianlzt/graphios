@@ -701,7 +701,8 @@ class influxdb09(influxdb):
                                                      "time": int(m.TIMET),
                                                      "measurement": path,
                                                      "tags": tags,
-                                                     "fields": {"value": value}})
+                                                     "fields": {"value":
+                                                         float(value)}})
 
         for project in perfdata:
             try:
