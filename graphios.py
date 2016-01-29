@@ -105,20 +105,21 @@ parser.add_option("--reverse_hostname", action="store_true",
                   help="Reverse nagios hostname, default off.")
 
 
-log = logging.getLogger('log')
+log = logging.getLogger("log")
 
 
 class GraphiosMetric(object):
     def __init__(self):
-        self.LABEL = ''                 # The name in the perfdata from nagios
-        self.VALUE = ''                 # The measured value of that metric
-        self.UOM = ''                   # The unit of measure for the metric
-        self.WARN = ''                  # Warning threshold
-        self.CRIT = ''                  # Critical threshold
-        self.MIN = ''                   # Min value possible
-        self.MAX = ''                   # Max value possible
+        self.METRICS = []               # Donde almacenamos todas las metricas
+        #self.LABEL = ''                 # The name in the perfdata from nagios
+        #self.VALUE = ''                 # The measured value of that metric
+        #self.UOM = ''                   # The unit of measure for the metric
+        #self.WARN = ''                  # Warning threshold
+        #self.CRIT = ''                  # Critical threshold
+        #self.MIN = ''                   # Min value possible
+        #self.MAX = ''                   # Max value possible
+        #self.METRICTYPE = 'gauge'       # gauge|counter|timer etc..
         self.DATATYPE = ''              # HOSTPERFDATA|SERVICEPERFDATA
-        self.METRICTYPE = 'gauge'       # gauge|counter|timer etc..
         self.TIMET = ''                 # Epoc time the measurement was taken
         self.HOSTNAME = ''              # name of th host measured
         self.SERVICEDESC = ''           # nagios configured service description
@@ -140,10 +141,11 @@ class GraphiosMetric(object):
     def validate(self):
         # because we eliminated all whitespace, there shouldn't be any quotes
         # this happens more with windows nagios plugins
-        re.sub("'", "", self.LABEL)
-        re.sub('"', "", self.LABEL)
-        re.sub("'", "", self.VALUE)
-        re.sub('"', "", self.VALUE)
+        for m in self.METRICS:
+            re.sub("'", "", m['LABEL'])
+            re.sub('"', "", m['LABEL'])
+            re.sub("'", "", m['VALUE'])
+            re.sub('"', "", m['VALUE'])
         self.check_adjust_hostname()
         if (
             self.TIMET is not '' and
@@ -367,29 +369,66 @@ def process_log(file_name):
             # break out the metric object into one object per perfdata metric
             # log.debug('perfdata:%s' % mobj.PERFDATA)
             for metric in mobj.PERFDATA.split():
+                # Inicializar valores para que no cogan del loop anterior
+                warn = None
+                crit = None
+                minv = None
+                maxv = None
+
                 try:
-                    nobj = copy.copy(mobj)
-                    (nobj.LABEL, d) = metric.split('=')
+                    perf = {}
+                    (label, d) = metric.split('=')
                     values = d.split(';')
                     v = values[0]
                     u = v
-                    nobj.VALUE = re.sub("[a-zA-Z%]", "", v)
-                    nobj.UOM = re.sub("[^a-zA-Z]+", "", u)
+                    value = re.sub("[a-zA-Z%]", "", v)
+                    uom = re.sub("[^a-zA-Z]+", "", u)
 
                     # Extract other values from perfdata
                     try:
-                        nobj.WARN = values[1]
-                        nobj.CRIT = values[2]
-                        nobj.MIN = values[3]
-                        nobj.MAX = values[4]
+                        warn = values[1]
                     except IndexError:
                         pass
+                    except ValueError:
+                        pass
 
-                    processed_objects.append(nobj)
+                    try:
+                        crit = values[2]
+                    except IndexError:
+                        pass
+                    except ValueError:
+                        pass
+
+                    try:
+                        minv = values[3]
+                    except IndexError:
+                        pass
+                    except ValueError:
+                        pass
+
+                    try:
+                        maxv = values[4]
+                    except IndexError:
+                        pass
+                    except ValueError:
+                        pass
+
+                    mobj.METRICS.append({
+                        "label": label,
+                        "value": value,
+                        "uom": uom,
+                        "warn": warn,
+                        "crit": crit,
+                        "min": minv,
+                        "max": maxv
+                        })
+
                 except:
                     log.critical("failed to parse label: '%s' part of perf"
-                                 "string '%s'" % (metric, nobj.PERFDATA))
+                                 "string '%s'" % (metric, mobj.PERFDATA))
                     continue
+
+            processed_objects.append(mobj)
     return processed_objects
 
 
@@ -460,7 +499,11 @@ def process_spool_dir(directory):
             continue
         num_files += 1
         mobjs = process_log(file_dir)
+        if not mobjs:
+            continue
+
         mobjs_len = len(mobjs)
+
         processed_dict = send_backends(mobjs)
         # process the output from the backends and decide the fate of the file
         for backend in be["essential_backends"]:
@@ -549,7 +592,7 @@ def send_backends(metrics):
     processed_lines = 0
     for backend in be["enabled_backends"]:
         processed_lines = be["enabled_backends"][backend].send(metrics)
-        # log.debug('%s processed %s metrics' % backend, processed_lines)
+        log.debug('%s processed %s metrics', backend, processed_lines)
         ret[backend] = processed_lines
     return ret
 
