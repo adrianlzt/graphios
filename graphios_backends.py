@@ -109,13 +109,13 @@ class influxdb09(object):
                 if v['uom']:
                     tags.update({"%s_uom" % label: v['uom']})
                 if v['warn'] != '':
-                    tags.update({"%s_warning" % label: v['warn']})
+                    values.update({"%s_warning" % label: v['warn']})
                 if v['crit'] != '':
-                    tags.update({"%s_critical" % label: v['crit']})
+                    values.update({"%s_critical" % label: v['crit']})
                 if v['min'] != '':
-                    tags.update({"%s_min" % label: v['min']})
+                    values.update({"%s_min" % label: v['min']})
                 if v['max'] != '':
-                    tags.update({"%s_max" % label: v['max']})
+                    values.update({"%s_max" % label: v['max']})
 
             tags.update(self.influxdb_extra_tags)
 
