@@ -386,28 +386,28 @@ def process_log(file_name):
 
                     # Extract other values from perfdata
                     try:
-                        warn = int(values[1])
+                        warn = float(values[1])
                     except IndexError:
                         pass
                     except ValueError:
                         pass
 
                     try:
-                        crit = int(values[2])
+                        crit = float(values[2])
                     except IndexError:
                         pass
                     except ValueError:
                         pass
 
                     try:
-                        minv = int(values[3])
+                        minv = float(values[3])
                     except IndexError:
                         pass
                     except ValueError:
                         pass
 
                     try:
-                        maxv = int(values[4])
+                        maxv = float(values[4])
                     except IndexError:
                         pass
                     except ValueError:
