@@ -100,7 +100,10 @@ class influxdb09(object):
                 except ValueError:
                     value = 0
 
-                values.update({"%s_value" % label: value})
+                if label == "time":
+                    label += "_value"
+
+                values.update({label: value})
 
                 # Add warning and critical threshold if exists
                 if v['uom']:
