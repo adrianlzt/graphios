@@ -500,6 +500,8 @@ def process_spool_dir(directory):
         num_files += 1
         mobjs = process_log(file_dir)
         if not mobjs:
+            log.warn("%s without metrics. Deleting...", file_dir)
+            os.remove(file_dir)
             continue
 
         mobjs_len = len(mobjs)
