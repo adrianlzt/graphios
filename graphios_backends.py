@@ -4,7 +4,9 @@ import logging
 import sys
 import ast
 import requests
+import json
 from influxdb import InfluxDBClusterClient
+from influxdb.exceptions import InfluxDBClientError
 
 # ###########################################################
 # #### influxdb-0.9 backend  ####################################
@@ -64,6 +66,23 @@ class influxdb09(object):
 
         hosts = map(lambda x: (x.split(':')[0],x.split(':')[1]), self.influxdb_servers)
         self.client = InfluxDBClusterClient(hosts, self.influxdb_user, self.influxdb_password, timeout = self.timeout)
+
+    def _create_database(self, name):
+        """ Create database and handle possible errors """
+        try:
+            self.client.create_database(name)
+
+        except InfluxDBClientError as error:
+            self.log.critical("Error creating database %s: %s", name, error)
+        except requests.exceptions.Timeout as error:
+            self.log.critical("Timeout connecting to InfluxDB: %s", error)
+            ret = 0
+        except requests.exceptions.ConnectionError as error:
+            self.log.critical("Error connecting to InfluxDB: %s", error)
+            ret = 0
+        except Exception as error:
+            self.log.critical("Error creating database %s: %s", name, error)
+
 
     def send(self, metrics):
         """ Connect to influxdb and send metrics. """
@@ -131,6 +150,14 @@ class influxdb09(object):
                 self.client.write_points(perfdata[project], database=project,
                                          time_precision='s',
                                          batch_size = self.influxdb_max_metrics)
+
+            except InfluxDBClientError as error:
+                if "database not found" in json.loads(error.content)['error']:
+                    self.log.warn("Database %s does not exist, creating...",
+                            project)
+                    self._create_database(project)
+                else:
+                    self.log.critical("Error writing points: %s", error)
 
             except requests.exceptions.Timeout as error:
                 self.log.critical("Timeout connecting to InfluxDB: %s", error)
