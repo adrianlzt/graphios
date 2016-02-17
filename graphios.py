@@ -1,4 +1,4 @@
-#!/usr/bin/python -tt
+#!/usr/bin/python2.7 -tt
 # vim: set ts=4 sw=4 tw=79 et :
 # Copyright (C) 2011  Shawn Sterling <shawn@systemtemplar.org>
 #
