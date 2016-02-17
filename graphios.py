@@ -350,12 +350,13 @@ def process_log(file_name):
     """
     processed_objects = []  # the final list of metric objects we'll return
     graphite_lines = 0  # count the number of valid lines we process
+
     try:
         host_data_file = open(file_name, "r")
         file_array = host_data_file.readlines()
         host_data_file.close()
     except (IOError, OSError) as ex:
-        log.critical("Can't open file:%s error: %s" % (file_name, ex))
+        raise Exception("Can't open file:%s error: %s" % (file_name, ex))
 
     # parse each line into a metric object
     for line in file_array:
@@ -498,7 +499,12 @@ def process_spool_dir(directory):
         if check_skip_file(perfdata_file, file_dir):
             continue
         num_files += 1
-        mobjs = process_log(file_dir)
+        try:
+            mobjs = process_log(file_dir)
+        except Exception as ex:
+            log.critical("%s" % ex)
+            continue
+
         if not mobjs:
             log.warn("%s without metrics. Deleting...", file_dir)
             os.remove(file_dir)
