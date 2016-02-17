@@ -356,7 +356,7 @@ def process_log(file_name):
         host_data_file.close()
     except (IOError, OSError) as ex:
         log.critical("Can't open file:%s error: %s" % (file_name, ex))
-        sys.exit(2)
+
     # parse each line into a metric object
     for line in file_array:
         if not re.search("^DATATYPE::", line):
