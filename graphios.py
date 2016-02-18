@@ -425,8 +425,9 @@ def process_log(file_name):
                         })
 
                 except:
-                    log.critical("failed to parse label: '%s' part of perf"
-                                 "string '%s'" % (metric, mobj.PERFDATA))
+                    log.critical("%s - (%s): failed to parse label: '%s' part of perf"
+                                 "string '%s'" % (mobj.HOSTNAME,
+                                     mobj.SERVICEDESC, metric, mobj.PERFDATA))
                     continue
 
             processed_objects.append(mobj)
