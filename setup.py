@@ -135,10 +135,15 @@ data_files = [
 ]
 scripts = ["graphios.py"]
 
-distro = platform.dist()[0]
-distro_ver = int(platform.dist()[1].split('.')[0])
-
-# print "using %s %s" % (distro, distro_ver)
+# Si es arch el linux_distribution esta vacio
+# Empaquetamos para redhat 6
+linux_dist = platform.linux_distribution()
+if linux_dist[0] == '':
+    distro = "redhat"
+    distro_ver = 6
+else:
+    distro = linux_dist[0]
+    distro_ver = int(linux_dist[1].split('.')[0])
 
 if distro in ['Ubuntu', 'debian']:
     data_files.append(('/etc/init/', ['init/debian/graphios.conf']))
@@ -155,7 +160,7 @@ elif distro in ['centos', 'redhat', 'fedora']:
 # print data_files
 setup(
     name='graphios',
-    version='2.0.0b3',
+    version='2.2.1',
     description='Emit Nagios metrics to Graphite, Statsd, and Librato',
     author='Shawn Sterling',
     author_email='shawn@systemtemplar.org',
