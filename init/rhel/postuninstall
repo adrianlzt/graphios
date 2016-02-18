@@ -8,5 +8,6 @@ if [ $1 == 0 ]; then
         systemctl stop graphios.service
     fi
     
+    echo "Unlink (delete) /usr/bin/graphios"
     unlink /usr/bin/graphios
 fi
