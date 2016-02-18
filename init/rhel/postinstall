@@ -1,5 +1,5 @@
-# add symlink
-ln -s /usr/bin/graphios.py /usr/bin/graphios
+# add symlink if it does not exists
+test -L /usr/bin/graphios || ln -s /usr/bin/graphios.py /usr/bin/graphios
 
 # add graphios service
 if [ ! -d /etc/systemd ]; then

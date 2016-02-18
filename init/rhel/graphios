@@ -20,7 +20,7 @@
 prog="/usr/bin/graphios"
 # or use the command line options:
 #prog="/usr/bin/graphios --log-file=/dir/mylog.log --spool-directory=/dir/my/sool"
-GRAPHIOS_USER="nagios"
+GRAPHIOS_USER="icinga"
 RETVAL=0
 
 start () {
