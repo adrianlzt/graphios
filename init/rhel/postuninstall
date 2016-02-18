@@ -1,9 +1,12 @@
-if [ ! -d /etc/systemd ]; then
-    # we are running init
-    service graphios stop
-else
-    # we are running systemd
-    systemctl stop graphios.service
+# Do not execute if updating
+if [ $1 == 0 ]; then
+    if [ ! -d /etc/systemd ]; then
+        # we are running init
+        service graphios stop
+    else
+        # we are running systemd
+        systemctl stop graphios.service
+    fi
+    
+    unlink /usr/bin/graphios
 fi
-
-unlink /usr/bin/graphios
