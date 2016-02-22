@@ -36,7 +36,6 @@
 
 from ConfigParser import SafeConfigParser
 from optparse import OptionParser
-from locale import atof
 import copy
 import graphios_backends as backends
 import logging
@@ -183,7 +182,7 @@ def str_to_float(value):
     locale a spanish, la sustituimos por un punto
     """
     try:
-        return atof(value)
+        return float(value)
     except ValueError as e:
         return str_to_float(value.replace(',','.'))
 
