@@ -157,7 +157,8 @@ class influxdb09(object):
                             project)
                     self._create_database(project)
                 else:
-                    self.log.critical("Error writing points: %s", error)
+                    self.log.critical("Error writing points (database=%s): %s",
+                            project, error)
 
             except requests.exceptions.Timeout as error:
                 self.log.critical("Timeout connecting to InfluxDB: %s", error)
