@@ -117,7 +117,7 @@ class influxdb09(object):
                 try:
                     value = float(v['value'])
                 except ValueError:
-                    value = 0
+                    value = 0.0
 
                 if label == "time":
                     label += "_value"
