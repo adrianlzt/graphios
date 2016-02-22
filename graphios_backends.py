@@ -111,14 +111,9 @@ class influxdb09(object):
 
             for v in m.METRICS:
                 label = v['label']
+                value = v['value']
 
-                # Ensure a float gets passed
-                # A measurement can not have integer and float values
-                try:
-                    value = float(v['value'])
-                except ValueError:
-                    value = 0.0
-
+                # Time es palabra reservada para influx
                 if label == "time":
                     label += "_value"
 

@@ -36,6 +36,7 @@
 
 from ConfigParser import SafeConfigParser
 from optparse import OptionParser
+from locale import atof
 import copy
 import graphios_backends as backends
 import logging
@@ -175,6 +176,16 @@ class GraphiosMetric(object):
             self.HOSTNAME = self.HOSTNAME.replace(".",
                                                   cfg["replacement_character"])
 
+def str_to_float(value):
+    """
+    Devuelve un valor double a partir de una string
+    Si la string tiene una coma se supone que esta con el
+    locale a spanish, la sustituimos por un punto
+    """
+    try:
+        return atof(value)
+    except ValueError as e:
+        return str_to_float(value.replace(',','.'))
 
 def chk_bool(value):
     """
@@ -382,33 +393,33 @@ def process_log(file_name):
                     values = d.split(';')
                     v = values[0]
                     u = v
-                    value = re.sub("[a-zA-Z%]", "", v)
+                    value = str_to_float(re.sub("[a-zA-Z%]", "", v))
                     uom = re.sub("[^a-zA-Z]+", "", u)
 
                     # Extract other values from perfdata
                     try:
-                        warn = float(values[1])
+                        warn = str_to_float(values[1])
                     except IndexError:
                         pass
                     except ValueError:
                         pass
 
                     try:
-                        crit = float(values[2])
+                        crit = str_to_float(values[2])
                     except IndexError:
                         pass
                     except ValueError:
                         pass
 
                     try:
-                        minv = float(values[3])
+                        minv = str_to_float(values[3])
                     except IndexError:
                         pass
                     except ValueError:
                         pass
 
                     try:
-                        maxv = float(values[4])
+                        maxv = str_to_float(values[4])
                     except IndexError:
                         pass
                     except ValueError:
