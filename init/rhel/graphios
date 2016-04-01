@@ -14,6 +14,9 @@
 # Source networking configuration.
 . /etc/sysconfig/network
 
+[ -e /etc/sysconfig/graphios ] && . /etc/sysconfig/graphios
+
+
 # Check that networking is up.
 [ "$NETWORKING" = "no" ] && exit 0
 
