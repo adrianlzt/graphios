@@ -184,7 +184,9 @@ def str_to_float(value):
     try:
         return float(value)
     except ValueError as e:
-        return str_to_float(value.replace(',','.'))
+        if ',' in value:
+            return str_to_float(value.replace(',','.'))
+        raise e
 
 def chk_bool(value):
     """
